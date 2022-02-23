@@ -1,2 +1,2 @@
 # dm_git
-example fit repo to store dm
+example git repo to store dm
