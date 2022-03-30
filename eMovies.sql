@@ -198,7 +198,7 @@ CREATE VIEW CUSTOMER_INVOICE ( credit_card,credit_card_exp,status_code,CUST_numb
 	 AS  SELECT ALL CUST_CREDIT.credit_card,CUST_CREDIT.credit_card_exp,CUST_CREDIT.status_code,CUST.CUST_number,CUST.CUST_address,CUST.email,CUST.CUST_city,CUST.CUST_first_name,CUST.CUST_last_name,CUST.CUST_state,CUST.CUST_zip_code,MO_RENT_REC.rental_record_date,MO_RENT_REC.mo_co_num,MO_RENT_REC.movie_number,MO_RENT_REC.rental_date,MO_RENT_REC.due_date,MO_RENT_REC.rental_status,MO_RENT_REC.overdue_charge,MO_RENT_REC.rental_rate,MOVIE.movie_title,rental_rate * 1.5
 		FROM CUST_CREDIT ,CUST ,MO_RENT_REC ,MOVIE ;
 
-CREATE VIEW OVERDUE_NOTICE ( credit_card,credit_card_exp,status_code,Overdue_Charge_Rate,CUST_number,CUST_address,email,CUST_city,CUST_first_name,CUST_last_name,CUST_state,CUST_zip_code,rental_record_date,mo_co_num,movie_number,rental_date,due_date,rental_status,overdue_charge,rental_rate ) 
+CREATE VIEW OVERDUE_NOTICE ( credit_cardx,credit_card_exp,status_code,Overdue_Charge_Rate,CUST_number,CUST_address,email,CUST_city,CUST_first_name,CUST_last_name,CUST_state,CUST_zip_code,rental_record_date,mo_co_num,movie_number,rental_date,due_date,rental_status,overdue_charge,rental_rate ) 
 	 AS  SELECT ALL CUST_CREDIT.credit_card,CUST_CREDIT.credit_card_exp,CUST_CREDIT.status_code,rental_rate * 1.5,CUST.CUST_number,CUST.CUST_address,CUST.email,CUST.CUST_city,CUST.CUST_first_name,CUST.CUST_last_name,CUST.CUST_state,CUST.CUST_zip_code,MO_RENT_REC.rental_record_date,MO_RENT_REC.mo_co_num,MO_RENT_REC.movie_number,MO_RENT_REC.rental_date,MO_RENT_REC.due_date,MO_RENT_REC.rental_status,MO_RENT_REC.overdue_charge,MO_RENT_REC.rental_rate
 		FROM CUST_CREDIT ,CUST ,MO_RENT_REC ;
 
