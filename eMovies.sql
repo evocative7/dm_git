@@ -194,7 +194,7 @@ CREATE UNIQUE INDEX XPKMOVIE_STORE ON MOVIE_STORE
 ALTER TABLE MOVIE_STORE
 	ADD CONSTRAINT  XPKMOVIE_STORE PRIMARY KEY (movie_number,store_number);
 
-CREATE VIEW CUSTOMER_INVOICE ( credit_card,credit_card_exp,status_code,CUST_number,CUST_address,email,CUST_city,CUST_first_name,CUST_last_name,CUST_state,CUST_zip_code,rental_record_date,mo_co_num,movie_number,rental_date,due_date,rental_status,overdue_charge,rental_rate,movie_title,Overdue_Charge_Rate ) 
+CREATE VIEW CUSTOMER_INVOICEx ( credit_card,credit_card_exp,status_code,CUST_number,CUST_address,email,CUST_city,CUST_first_name,CUST_last_name,CUST_state,CUST_zip_code,rental_record_date,mo_co_num,movie_number,rental_date,due_date,rental_status,overdue_charge,rental_rate,movie_title,Overdue_Charge_Rate ) 
 	 AS  SELECT ALL CUST_CREDIT.credit_card,CUST_CREDIT.credit_card_exp,CUST_CREDIT.status_code,CUST.CUST_number,CUST.CUST_address,CUST.email,CUST.CUST_city,CUST.CUST_first_name,CUST.CUST_last_name,CUST.CUST_state,CUST.CUST_zip_code,MO_RENT_REC.rental_record_date,MO_RENT_REC.mo_co_num,MO_RENT_REC.movie_number,MO_RENT_REC.rental_date,MO_RENT_REC.due_date,MO_RENT_REC.rental_status,MO_RENT_REC.overdue_charge,MO_RENT_REC.rental_rate,MOVIE.movie_title,rental_rate * 1.5
 		FROM CUST_CREDIT ,CUST ,MO_RENT_REC ,MOVIE ;
 
