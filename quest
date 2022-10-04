@@ -1,0 +1,237 @@
+
+CREATE TABLE [Bill_of_Lading]
+( 
+	[Export]             char(18)  NULL ,
+	[Date]               char(18)  NULL ,
+	[POL]                char(18)  NULL ,
+	[POD]                char(18)  NULL 
+)
+go
+
+CREATE TABLE [Container]
+( 
+	[Container_Number]   char(18)  NOT NULL ,
+	[POL]                char(18)  NULL 
+)
+go
+
+CREATE TABLE [Vessel]
+( 
+	[Vessel_ID]          char(18)  NOT NULL 
+)
+go
+
+CREATE TABLE [Vessel_Voyage]
+( 
+	[Vessel_ID_Alias]    char(18)  NOT NULL 
+)
+go
+
+ALTER TABLE [Container]
+	ADD CONSTRAINT [XPKContainer] PRIMARY KEY  CLUSTERED ([Container_Number] ASC)
+go
+
+ALTER TABLE [Vessel]
+	ADD CONSTRAINT [XPKVessel] PRIMARY KEY  CLUSTERED ([Vessel_ID] ASC)
+go
+
+ALTER TABLE [Vessel_Voyage]
+	ADD CONSTRAINT [XPKVessel_Voyage] PRIMARY KEY  CLUSTERED ([Vessel_ID_Alias] ASC)
+go
+
+
+ALTER TABLE [Vessel_Voyage]
+	ADD CONSTRAINT [R_2] FOREIGN KEY ([Vessel_ID_Alias]) REFERENCES [Vessel]([Vessel_ID])
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+
+CREATE TRIGGER tD_Vessel ON Vessel FOR DELETE AS
+/* erwin Builtin Trigger */
+/* DELETE trigger on Vessel */
+BEGIN
+  DECLARE  @errno   int,
+           @severity int,
+           @state    int,
+           @errmsg  varchar(255)
+    /* erwin Builtin Trigger */
+    /* Vessel  Vessel_Voyage on parent delete no action */
+    /* ERWIN_RELATION:CHECKSUM="000119ee", PARENT_OWNER="", PARENT_TABLE="Vessel"
+    CHILD_OWNER="", CHILD_TABLE="Vessel_Voyage"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="Vessel_ID_Alias" */
+    IF EXISTS (
+      SELECT * FROM deleted,Vessel_Voyage
+      WHERE
+        /*  %JoinFKPK(Vessel_Voyage,deleted," = "," AND") */
+        Vessel_Voyage.Vessel_ID_Alias = deleted.Vessel_ID
+    )
+    BEGIN
+      SELECT @errno  = 30001,
+             @errmsg = 'Cannot delete Vessel because Vessel_Voyage exists.'
+      GOTO error
+    END
+
+
+    /* erwin Builtin Trigger */
+    RETURN
+error:
+   RAISERROR (@errmsg, -- Message text.
+              @severity, -- Severity (0~25).
+              @state) -- State (0~255).
+    rollback transaction
+END
+
+go
+
+
+CREATE TRIGGER tU_Vessel ON Vessel FOR UPDATE AS
+/* erwin Builtin Trigger */
+/* UPDATE trigger on Vessel */
+BEGIN
+  DECLARE  @numrows int,
+           @nullcnt int,
+           @validcnt int,
+           @insVessel_ID char(18),
+           @errno   int,
+           @severity int,
+           @state    int,
+           @errmsg  varchar(255)
+
+  SELECT @numrows = @@rowcount
+  /* erwin Builtin Trigger */
+  /* Vessel  Vessel_Voyage on parent update no action */
+  /* ERWIN_RELATION:CHECKSUM="00012d19", PARENT_OWNER="", PARENT_TABLE="Vessel"
+    CHILD_OWNER="", CHILD_TABLE="Vessel_Voyage"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="Vessel_ID_Alias" */
+  IF
+    /* %ParentPK(" OR",UPDATE) */
+    UPDATE(Vessel_ID)
+  BEGIN
+    IF EXISTS (
+      SELECT * FROM deleted,Vessel_Voyage
+      WHERE
+        /*  %JoinFKPK(Vessel_Voyage,deleted," = "," AND") */
+        Vessel_Voyage.Vessel_ID_Alias = deleted.Vessel_ID
+    )
+    BEGIN
+      SELECT @errno  = 30005,
+             @errmsg = 'Cannot update Vessel because Vessel_Voyage exists.'
+      GOTO error
+    END
+  END
+
+
+  /* erwin Builtin Trigger */
+  RETURN
+error:
+   RAISERROR (@errmsg, -- Message text.
+              @severity, -- Severity (0~25).
+              @state) -- State (0~255).
+    rollback transaction
+END
+
+go
+
+
+
+
+CREATE TRIGGER tD_Vessel_Voyage ON Vessel_Voyage FOR DELETE AS
+/* erwin Builtin Trigger */
+/* DELETE trigger on Vessel_Voyage */
+BEGIN
+  DECLARE  @errno   int,
+           @severity int,
+           @state    int,
+           @errmsg  varchar(255)
+    /* erwin Builtin Trigger */
+    /* Vessel  Vessel_Voyage on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00015294", PARENT_OWNER="", PARENT_TABLE="Vessel"
+    CHILD_OWNER="", CHILD_TABLE="Vessel_Voyage"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="Vessel_ID_Alias" */
+    IF EXISTS (SELECT * FROM deleted,Vessel
+      WHERE
+        /* %JoinFKPK(deleted,Vessel," = "," AND") */
+        deleted.Vessel_ID_Alias = Vessel.Vessel_ID AND
+        NOT EXISTS (
+          SELECT * FROM Vessel_Voyage
+          WHERE
+            /* %JoinFKPK(Vessel_Voyage,Vessel," = "," AND") */
+            Vessel_Voyage.Vessel_ID_Alias = Vessel.Vessel_ID
+        )
+    )
+    BEGIN
+      SELECT @errno  = 30010,
+             @errmsg = 'Cannot delete last Vessel_Voyage because Vessel exists.'
+      GOTO error
+    END
+
+
+    /* erwin Builtin Trigger */
+    RETURN
+error:
+   RAISERROR (@errmsg, -- Message text.
+              @severity, -- Severity (0~25).
+              @state) -- State (0~255).
+    rollback transaction
+END
+
+go
+
+
+CREATE TRIGGER tU_Vessel_Voyage ON Vessel_Voyage FOR UPDATE AS
+/* erwin Builtin Trigger */
+/* UPDATE trigger on Vessel_Voyage */
+BEGIN
+  DECLARE  @numrows int,
+           @nullcnt int,
+           @validcnt int,
+           @insVessel_ID_Alias char(18),
+           @errno   int,
+           @severity int,
+           @state    int,
+           @errmsg  varchar(255)
+
+  SELECT @numrows = @@rowcount
+  /* erwin Builtin Trigger */
+  /* Vessel  Vessel_Voyage on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="00017107", PARENT_OWNER="", PARENT_TABLE="Vessel"
+    CHILD_OWNER="", CHILD_TABLE="Vessel_Voyage"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="Vessel_ID_Alias" */
+  IF
+    /* %ChildFK(" OR",UPDATE) */
+    UPDATE(Vessel_ID_Alias)
+  BEGIN
+    SELECT @nullcnt = 0
+    SELECT @validcnt = count(*)
+      FROM inserted,Vessel
+        WHERE
+          /* %JoinFKPK(inserted,Vessel) */
+          inserted.Vessel_ID_Alias = Vessel.Vessel_ID
+    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
+    
+    IF @validcnt + @nullcnt != @numrows
+    BEGIN
+      SELECT @errno  = 30007,
+             @errmsg = 'Cannot update Vessel_Voyage because Vessel does not exist.'
+      GOTO error
+    END
+  END
+
+
+  /* erwin Builtin Trigger */
+  RETURN
+error:
+   RAISERROR (@errmsg, -- Message text.
+              @severity, -- Severity (0~25).
+              @state) -- State (0~255).
+    rollback transaction
+END
+
+go
+
+
