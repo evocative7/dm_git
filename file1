@@ -1,0 +1,305 @@
+
+CREATE TABLE tbl1
+(
+	a                    CHAR(18)  NOT NULL ,
+	b                    CHAR(18)  NOT NULL ,
+	c                    CHAR(18)  NULL 
+);
+
+CREATE UNIQUE INDEX XPKtbl1 ON tbl1
+(a   ASC,b   ASC);
+
+ALTER TABLE tbl1
+	ADD CONSTRAINT  XPKtbl1 PRIMARY KEY (a,b);
+
+CREATE TABLE tbl2
+(
+	d                    CHAR(18)  NOT NULL ,
+	e                    CHAR(18)  NOT NULL ,
+	a                    CHAR(18)  NOT NULL ,
+	b                    CHAR(18)  NOT NULL 
+);
+
+CREATE UNIQUE INDEX XPKtbl2 ON tbl2
+(d   ASC,e   ASC,a   ASC,b   ASC);
+
+ALTER TABLE tbl2
+	ADD CONSTRAINT  XPKtbl2 PRIMARY KEY (d,e,a,b);
+
+CREATE TABLE tbl3
+(
+	aa                   CHAR(18)  NOT NULL ,
+	bb                   CHAR(18)  NOT NULL ,
+	cc                   CHAR(18)  NULL 
+);
+
+CREATE UNIQUE INDEX XPKtbl3 ON tbl3
+(aa   ASC,bb   ASC);
+
+ALTER TABLE tbl3
+	ADD CONSTRAINT  XPKtbl3 PRIMARY KEY (aa,bb);
+
+CREATE TABLE tbl4
+(
+	dd                   CHAR(18)  NOT NULL ,
+	ee                   CHAR(18)  NOT NULL ,
+	aa                   CHAR(18)  NULL ,
+	bb                   CHAR(18)  NULL 
+);
+
+CREATE UNIQUE INDEX XPKtbl4 ON tbl4
+(dd   ASC,ee   ASC);
+
+ALTER TABLE tbl4
+	ADD CONSTRAINT  XPKtbl4 PRIMARY KEY (dd,ee);
+
+ALTER TABLE tbl2
+	ADD (
+CONSTRAINT R_1 FOREIGN KEY (a, b) REFERENCES tbl1 (a, b));
+
+ALTER TABLE tbl4
+	ADD (
+CONSTRAINT R_2 FOREIGN KEY (aa, bb) REFERENCES tbl3 (aa, bb) ON DELETE SET NULL);
+
+CREATE  TRIGGER  tD_tbl1 AFTER DELETE ON tbl1 for each row
+-- erwin Builtin Trigger
+-- DELETE trigger on tbl1 
+DECLARE NUMROWS INTEGER;
+BEGIN
+    /* erwin Builtin Trigger */
+    /* tbl1  tbl2 on parent delete restrict */
+    /* ERWIN_RELATION:CHECKSUM="0000caae", PARENT_OWNER="", PARENT_TABLE="tbl1"
+    CHILD_OWNER="", CHILD_TABLE="tbl2"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1", FK_COLUMNS="a""b" */
+    SELECT count(*) INTO NUMROWS
+      FROM tbl2
+      WHERE
+        /*  %JoinFKPK(tbl2,:%Old," = "," AND") */
+        tbl2.a = :old.a AND
+        tbl2.b = :old.b;
+    IF (NUMROWS > 0)
+    THEN
+      raise_application_error(
+        -20001,
+        'Cannot delete tbl1 because tbl2 exists.'
+      );
+    END IF;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+CREATE  TRIGGER tU_tbl1 AFTER UPDATE ON tbl1 for each row
+-- erwin Builtin Trigger
+-- UPDATE trigger on tbl1 
+DECLARE NUMROWS INTEGER;
+BEGIN
+  /* tbl1  tbl2 on parent update set null */
+  /* ERWIN_RELATION:CHECKSUM="0000d1a0", PARENT_OWNER="", PARENT_TABLE="tbl1"
+    CHILD_OWNER="", CHILD_TABLE="tbl2"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1", FK_COLUMNS="a""b" */
+  IF
+    /* %JoinPKPK(:%Old,:%New," <> "," OR ") */
+    :old.a <> :new.a OR 
+    :old.b <> :new.b
+  THEN
+    UPDATE tbl2
+      SET
+        /* %SetFK(tbl2,NULL) */
+        tbl2.a = NULL,
+        tbl2.b = NULL
+      WHERE
+        /* %JoinFKPK(tbl2,:%Old," = ",",") */
+        tbl2.a = :old.a AND
+        tbl2.b = :old.b;
+  END IF;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+
+CREATE  TRIGGER tI_tbl2 BEFORE INSERT ON tbl2 for each row
+-- erwin Builtin Trigger
+-- INSERT trigger on tbl2 
+DECLARE NUMROWS INTEGER;
+BEGIN
+    /* erwin Builtin Trigger */
+    /* tbl1  tbl2 on child insert restrict */
+    /* ERWIN_RELATION:CHECKSUM="0000e0c4", PARENT_OWNER="", PARENT_TABLE="tbl1"
+    CHILD_OWNER="", CHILD_TABLE="tbl2"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1", FK_COLUMNS="a""b" */
+    SELECT count(*) INTO NUMROWS
+      FROM tbl1
+      WHERE
+        /* %JoinFKPK(:%New,tbl1," = "," AND") */
+        :new.a = tbl1.a AND
+        :new.b = tbl1.b;
+    IF (
+      /* %NotnullFK(:%New," IS NOT NULL AND") */
+      
+      NUMROWS = 0
+    )
+    THEN
+      raise_application_error(
+        -20002,
+        'Cannot insert tbl2 because tbl1 does not exist.'
+      );
+    END IF;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+CREATE  TRIGGER tU_tbl2 AFTER UPDATE ON tbl2 for each row
+-- erwin Builtin Trigger
+-- UPDATE trigger on tbl2 
+DECLARE NUMROWS INTEGER;
+BEGIN
+    /* erwin Builtin Trigger */
+    /* tbl1  tbl2 on child update set null */
+    /* ERWIN_RELATION:CHECKSUM="00008827", PARENT_OWNER="", PARENT_TABLE="tbl1"
+    CHILD_OWNER="", CHILD_TABLE="tbl2"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1", FK_COLUMNS="a""b" */
+    /* Not Implemented due to an ORA-04091 Mutating Table Issue */
+    NULL;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+
+CREATE  TRIGGER  tD_tbl3 AFTER DELETE ON tbl3 for each row
+-- erwin Builtin Trigger
+-- DELETE trigger on tbl3 
+DECLARE NUMROWS INTEGER;
+BEGIN
+    /* erwin Builtin Trigger */
+    /* tbl3  tbl4 on parent delete set null */
+    /* ERWIN_RELATION:CHECKSUM="0000a68e", PARENT_OWNER="", PARENT_TABLE="tbl3"
+    CHILD_OWNER="", CHILD_TABLE="tbl4"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="aa""bb" */
+    UPDATE tbl4
+      SET
+        /* %SetFK(tbl4,NULL) */
+        tbl4.aa = NULL,
+        tbl4.bb = NULL
+      WHERE
+        /* %JoinFKPK(tbl4,:%Old," = "," AND") */
+        tbl4.aa = :old.aa AND
+        tbl4.bb = :old.bb;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+CREATE  TRIGGER tU_tbl3 AFTER UPDATE ON tbl3 for each row
+-- erwin Builtin Trigger
+-- UPDATE trigger on tbl3 
+DECLARE NUMROWS INTEGER;
+BEGIN
+  /* tbl3  tbl4 on parent update set null */
+  /* ERWIN_RELATION:CHECKSUM="0000cd22", PARENT_OWNER="", PARENT_TABLE="tbl3"
+    CHILD_OWNER="", CHILD_TABLE="tbl4"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="aa""bb" */
+  IF
+    /* %JoinPKPK(:%Old,:%New," <> "," OR ") */
+    :old.aa <> :new.aa OR 
+    :old.bb <> :new.bb
+  THEN
+    UPDATE tbl4
+      SET
+        /* %SetFK(tbl4,NULL) */
+        tbl4.aa = NULL,
+        tbl4.bb = NULL
+      WHERE
+        /* %JoinFKPK(tbl4,:%Old," = ",",") */
+        tbl4.aa = :old.aa AND
+        tbl4.bb = :old.bb;
+  END IF;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+
+CREATE  TRIGGER tI_tbl4 BEFORE INSERT ON tbl4 for each row
+-- erwin Builtin Trigger
+-- INSERT trigger on tbl4 
+DECLARE NUMROWS INTEGER;
+BEGIN
+    /* erwin Builtin Trigger */
+    /* tbl3  tbl4 on child insert set null */
+    /* ERWIN_RELATION:CHECKSUM="0000dc2d", PARENT_OWNER="", PARENT_TABLE="tbl3"
+    CHILD_OWNER="", CHILD_TABLE="tbl4"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="aa""bb" */
+    UPDATE tbl4
+      SET
+        /* %SetFK(tbl4,NULL) */
+        tbl4.aa = NULL,
+        tbl4.bb = NULL
+      WHERE
+        NOT EXISTS (
+          SELECT * FROM tbl3
+            WHERE
+              /* %JoinFKPK(:%New,tbl3," = "," AND") */
+              :new.aa = tbl3.aa AND
+              :new.bb = tbl3.bb
+        ) 
+        /* %JoinPKPK(tbl4,:%New," = "," AND") */
+         and tbl4.dd = :new.dd AND
+        tbl4.ee = :new.ee;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
+CREATE  TRIGGER tU_tbl4 AFTER UPDATE ON tbl4 for each row
+-- erwin Builtin Trigger
+-- UPDATE trigger on tbl4 
+DECLARE NUMROWS INTEGER;
+BEGIN
+  /* erwin Builtin Trigger */
+  /* tbl3  tbl4 on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="0000ea33", PARENT_OWNER="", PARENT_TABLE="tbl3"
+    CHILD_OWNER="", CHILD_TABLE="tbl4"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_2", FK_COLUMNS="aa""bb" */
+  SELECT count(*) INTO NUMROWS
+    FROM tbl3
+    WHERE
+      /* %JoinFKPK(:%New,tbl3," = "," AND") */
+      :new.aa = tbl3.aa AND
+      :new.bb = tbl3.bb;
+  IF (
+    /* %NotnullFK(:%New," IS NOT NULL AND") */
+    :new.aa IS NOT NULL AND
+    :new.bb IS NOT NULL AND
+    NUMROWS = 0
+  )
+  THEN
+    raise_application_error(
+      -20007,
+      'Cannot update tbl4 because tbl3 does not exist.'
+    );
+  END IF;
+
+
+-- erwin Builtin Trigger
+END;
+/
+
