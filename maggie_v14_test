@@ -1,0 +1,15 @@
+
+DROP INDEX XPKE_1;
+
+CREATE TABLE E_1
+(
+	pk1                   CHAR(18)
+			       NOT NULL ,
+	col1                  CHAR(18)
+			      
+);
+
+CREATE UNIQUE INDEX XPKE_1 ON E_1
+(
+	pk1                  ASC
+);
